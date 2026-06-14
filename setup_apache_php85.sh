@@ -82,37 +82,45 @@ apt-get install -y build-essential php-dev php-xml
 log_success "Utilitários instalados!"
 
 # =============================================================================
-# PASSO 5 — Instalar extensões PHP (essenciais)
-#  No PHP 8.x: json/pdo já fazem parte do core (não há pacote separado).
+# PASSO 5 — Instalar extensões PHP
+#  Observações de mudança no PHP 8.4/8.5:
+#   - json/pdo/opcache já fazem parte do CORE (não há pacote separado;
+#     o OPcache vem embutido no pacote base php${PHP_VERSION}).
+#   - a extensão IMAP foi REMOVIDA do core no PHP 8.4 (não há php-imap).
+#  Por isso instalamos cada extensão de forma tolerante: se um pacote não
+#  existir neste release, apenas avisamos e seguimos (não derruba o script).
 # =============================================================================
 log_info "Instalando extensões PHP ${PHP_VERSION}..."
-apt-get install -y \
+
+# Extensões que normalmente existem nos repos oficiais
+for EXT in \
     php${PHP_VERSION}-cli \
     php${PHP_VERSION}-curl \
     php${PHP_VERSION}-mysql \
     php${PHP_VERSION}-gd \
-    php${PHP_VERSION}-opcache \
     php${PHP_VERSION}-zip \
     php${PHP_VERSION}-intl \
     php${PHP_VERSION}-common \
     php${PHP_VERSION}-bcmath \
-    php${PHP_VERSION}-imap \
     php${PHP_VERSION}-readline \
     php${PHP_VERSION}-mbstring \
     php${PHP_VERSION}-xml \
     php${PHP_VERSION}-soap \
-    php${PHP_VERSION}-dev
+    php${PHP_VERSION}-dev; do
+    try_install "${EXT}"
+done
 
 # php-pear sem número de versão
-apt-get install -y php-pear
+try_install php-pear
 
-# Extensões opcionais — podem não existir nos repos oficiais (vêm via PECL).
-# Se faltarem, apenas avisamos e seguimos.
+# Extensões opcionais — podem não existir nos repos oficiais (vêm via PECL),
+# ou foram removidas do core (imap, xmlrpc).
 for OPT in \
     php${PHP_VERSION}-imagick \
     php${PHP_VERSION}-redis \
     php${PHP_VERSION}-apcu \
     php${PHP_VERSION}-memcached \
+    php${PHP_VERSION}-imap \
     php${PHP_VERSION}-xmlrpc \
     php${PHP_VERSION}-memcache; do
     try_install "${OPT}"
