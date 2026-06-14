@@ -71,10 +71,41 @@ log_success "Apache2 instalado e iniciado!"
 # =============================================================================
 # PASSO 3 — Adicionar repositório PHP 7.4 (Ondrej)
 #  Obrigatório no 24.04, pois o 7.4 não vem nos repos oficiais.
+#
+#  IMPORTANTE: a PPA do Ondrej só publica pacotes para releases LTS/suportadas.
+#  Se o sistema for uma versão de desenvolvimento (ex.: 'resolute'), o
+#  add-apt-repository tentaria usar esse codinome e daria 404. Por isso
+#  detectamos o codinome e caímos para 'noble' (24.04) quando necessário.
+#  Você pode forçar manualmente com:  PPA_CODENAME=noble sudo -E bash script.sh
 # =============================================================================
 log_info "Adicionando repositório PHP ${PHP_VERSION} (ppa:ondrej/php)..."
-apt-get -y install software-properties-common ca-certificates lsb-release apt-transport-https
-add-apt-repository ppa:ondrej/php -y
+apt-get -y install software-properties-common ca-certificates lsb-release apt-transport-https gnupg curl
+
+# Codinomes que a PPA do Ondrej realmente suporta
+SUPPORTED_CODENAMES="bionic focal jammy noble"
+PPA_CODENAME="${PPA_CODENAME:-$(lsb_release -cs)}"
+
+if ! echo " ${SUPPORTED_CODENAMES} " | grep -q " ${PPA_CODENAME} "; then
+    log_warn "Release '${PPA_CODENAME}' não é suportada pela PPA do Ondrej."
+    log_warn "Usando os pacotes do 'noble' (Ubuntu 24.04 LTS)."
+    PPA_CODENAME="noble"
+fi
+log_info "Usando codinome da PPA: ${PPA_CODENAME}"
+
+# Adiciona a PPA manualmente (não usamos add-apt-repository para poder
+# fixar o codinome e não depender da auto-detecção do sistema).
+install -d -m 0755 /etc/apt/keyrings
+curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x14AA40EC0831756756D7F66C4F4EA0AAE5267A6C" \
+    | gpg --dearmor -o /etc/apt/keyrings/ondrej-php.gpg
+
+# Remove qualquer entrada antiga/quebrada da PPA antes de recriar
+rm -f /etc/apt/sources.list.d/ondrej-ubuntu-php-*.sources \
+      /etc/apt/sources.list.d/ondrej-ubuntu-php-*.list \
+      /etc/apt/sources.list.d/ondrej-php.list
+
+echo "deb [signed-by=/etc/apt/keyrings/ondrej-php.gpg] https://ppa.launchpadcontent.net/ondrej/php/ubuntu ${PPA_CODENAME} main" \
+    > /etc/apt/sources.list.d/ondrej-php.list
+
 apt-get update -y
 log_success "Repositório adicionado!"
 
