@@ -152,7 +152,47 @@ chown -R www-data:www-data /var/www/
 log_success "Permissões configuradas!"
 
 # =============================================================================
-# PASSO 10 — Reiniciar Apache2 (3 formas como no original)
+# PASSO 10 — Habilitar mod_rewrite e ativar suporte ao .htaccess
+# =============================================================================
+log_info "Habilitando mod_rewrite (necessário para .htaccess)..."
+a2enmod rewrite
+log_success "mod_rewrite habilitado!"
+
+log_info "Configurando AllowOverride All no apache2.conf..."
+APACHE_CONF="/etc/apache2/apache2.conf"
+
+if [ -f "$APACHE_CONF" ]; then
+    cp "$APACHE_CONF" "${APACHE_CONF}.bak"
+    # Atualiza o bloco <Directory /var/www/> para AllowOverride All
+    python3 - <<'PYEOF'
+import re
+
+conf_path = "/etc/apache2/apache2.conf"
+with open(conf_path, "r") as f:
+    content = f.read()
+
+# Substitui AllowOverride None/Any por AllowOverride All dentro do bloco /var/www/
+pattern = r'(<Directory\s+/var/www/\s*>)(.*?)(</Directory>)'
+
+def replacer(m):
+    block = m.group(2)
+    block = re.sub(r'AllowOverride\s+\S+', 'AllowOverride All', block)
+    return m.group(1) + block + m.group(3)
+
+new_content = re.sub(pattern, replacer, content, flags=re.DOTALL)
+
+with open(conf_path, "w") as f:
+    f.write(new_content)
+
+print("apache2.conf atualizado com sucesso.")
+PYEOF
+    log_success "apache2.conf configurado! (backup: ${APACHE_CONF}.bak)"
+else
+    log_warn "apache2.conf não encontrado em $APACHE_CONF — pulando."
+fi
+
+# =============================================================================
+# PASSO 11 — Reiniciar Apache2 (3 formas como no original)
 # =============================================================================
 log_info "Reiniciando Apache2..."
 /etc/init.d/apache2 restart
