@@ -142,14 +142,9 @@ if [ -d "${REAL_HOME}/ia-venv" ]; then
 fi
 
 # ---------- 6. Pacotes apt ----------
-echo ""
-if ask "Remover pacotes instalados (openmpi, nfs-kernel-server, iperf3, avahi)? O SSH fica." n; then
-    export DEBIAN_FRONTEND=noninteractive
-    apt-get remove -y -qq openmpi-bin openmpi-common libopenmpi-dev nfs-kernel-server \
-        iperf3 avahi-daemon avahi-utils libnss-mdns iotop >/dev/null 2>&1 || true
-    apt-get autoremove -y -qq >/dev/null 2>&1 || true
-    log_ok "Pacotes removidos"
-fi
+# NUNCA remover pacotes aqui: avahi/libnss-mdns fazem parte do ubuntu-desktop e um
+# "apt remove" + "autoremove" derruba o desktop inteiro. Os pacotes extras (openmpi,
+# nfs, iperf3) sao pequenos e inofensivos; ficam instalados.
 
 echo ""
 log_ok "Limpeza concluída!"

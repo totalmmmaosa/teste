@@ -99,6 +99,14 @@ log_section "ETAPA 2: Detectando interface de rede do cabo"
 modprobe thunderbolt-net 2>/dev/null || true
 sleep 1
 
+# Liga todas as portas cabeadas para conseguir ver em qual está o cabo (DGX Spark: portas QSFP vêm desligadas)
+for _if in /sys/class/net/*; do
+    _if=$(basename "$_if")
+    case "$_if" in lo|wl*|docker*|virbr*|veth*|br-*|tun*|tap*|vmnet*|wg*) continue ;; esac
+    ip link set "$_if" up 2>/dev/null || true
+done
+sleep 3
+
 echo -e "${CYAN}Interfaces disponíveis (estado / link):${NC}"
 echo ""
 ip -br link show | awk '$1!="lo"{printf "   %-16s %s\n",$1,$2}'

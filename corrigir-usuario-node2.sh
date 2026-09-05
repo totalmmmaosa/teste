@@ -91,7 +91,7 @@ echo -e "    ${GREEN}RENOMEAR${NC} usuário '${OLD}' → '${NEW}'   (home: ${OLD
 echo -e "    Sua senha, arquivos, sudo e configurações continuam os mesmos."
 echo ""
 read -r -p "  Confirma? Digite SIM para continuar: " CONF < /dev/tty
-[ "$CONF" = "SIM" ] || { echo "Cancelado."; exit 0; }
+[[ "${CONF^^}" = "SIM" ]] || { echo "Cancelado (digite SIM para confirmar)."; exit 0; }
 
 # ---------- Script que roda no boot ----------
 cat > "$RENAME_SCRIPT" <<EOF
