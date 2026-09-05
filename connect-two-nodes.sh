@@ -54,7 +54,7 @@ echo "  Qual é este notebook?"
 echo -e "  ${CYAN}1${NC}) Notebook 1 (PRIMÁRIO   — IP: 10.0.0.1)"
 echo -e "  ${CYAN}2${NC}) Notebook 2 (SECUNDÁRIO — IP: 10.0.0.2)"
 echo ""
-read -p "  Digite 1 ou 2: " NODE_NUMBER
+read -p "  Digite 1 ou 2: " NODE_NUMBER < /dev/tty
 
 case "$NODE_NUMBER" in
     1)
@@ -143,7 +143,7 @@ fi
 
 # Pedir confirmação
 echo ""
-read -p "  Interface do cabo direto entre os notebooks [$DIRECT_IFACE]: " INPUT_IFACE
+read -p "  Interface do cabo direto entre os notebooks [$DIRECT_IFACE]: " INPUT_IFACE < /dev/tty
 [ -n "$INPUT_IFACE" ] && DIRECT_IFACE="$INPUT_IFACE"
 
 [ -z "$DIRECT_IFACE" ] && log_error "Nenhuma interface detectada. Conecte o cabo e tente novamente."
